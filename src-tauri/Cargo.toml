@@ -19,4 +19,7 @@ tauri = { version = "2.0.0-rc", features = [] }
 tauri-plugin-shell = "2.0.0-rc"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+bluer = { version = "0.17.0", features = ["full"] }
+tokio = { version = "1.39.2", features = ["rt", "rt-multi-thread", "macros"] }
 
+nothing = { path = "../nothing" }

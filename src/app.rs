@@ -1,68 +1,78 @@
-use leptos::leptos_dom::ev::SubmitEvent;
 use leptos::*;
-use serde::{Deserialize, Serialize};
-use serde_wasm_bindgen::to_value;
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::JsValue;
 
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "core"])]
-    async fn invoke(cmd: &str, args: JsValue) -> JsValue;
-}
-
-#[derive(Serialize, Deserialize)]
-struct GreetArgs<'a> {
-    name: &'a str,
+    async fn invoke(cmd: &str) -> JsValue;
 }
 
 #[component]
 pub fn App() -> impl IntoView {
-    let (name, set_name) = create_signal(String::new());
-    let (greet_msg, set_greet_msg) = create_signal(String::new());
-
-    let update_name = move |ev| {
-        let v = event_target_value(&ev);
-        set_name.set(v);
-    };
-
-    let greet = move |ev: SubmitEvent| {
-        ev.prevent_default();
-        spawn_local(async move {
-            let name = name.get_untracked();
-            if name.is_empty() {
-                return;
-            }
-
-            let args = to_value(&GreetArgs { name: &name }).unwrap();
-            // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-            let new_msg = invoke("greet", args).await.as_string().unwrap();
-            set_greet_msg.set(new_msg);
-        });
-    };
+    let (count, set_count) = create_signal(0);
+    let (address, set_address) = create_signal("Unknown".to_string());
+    let (serial_number, set_serial_number) = create_signal("Unknown".to_string());
+    let (firmware_version, set_firmware_version) = create_signal("Unknown".to_string());
 
     view! {
-        <main class="container">
-            <div class="row">
-                <a href="https://tauri.app" target="_blank">
-                    <img src="public/tauri.svg" class="logo tauri" alt="Tauri logo"/>
-                </a>
-                <a href="https://docs.rs/leptos/" target="_blank">
-                    <img src="public/leptos.svg" class="logo leptos" alt="Leptos logo"/>
-                </a>
-            </div>
+        <div class="button-container">
+            <Info
+                read_signal=address
+                write_signal=set_address
+                function_name="get_address"
+                name="Address"
+            />
+            <Info
+                read_signal=serial_number
+                write_signal=set_serial_number
+                function_name="get_serial_number"
+                name="Serial Number"
+            />
+            <Info
+                read_signal=firmware_version
+                write_signal=set_firmware_version
+                function_name="get_firmware_version"
+                name="Firmware Version"
+            />
+        </div>
 
-            <p>"Click on the Tauri and Leptos logos to learn more."</p>
+        <button
+            on:click=move |_| {
+                set_count.update(|n| *n += 1);
+            }
+            class:red=move || count.get() % 2 == 1
+        >
+            "Click me for +1"
+        </button>
 
-            <form class="row" on:submit=greet>
-                <input
-                    id="greet-input"
-                    placeholder="Enter a name..."
-                    on:input=update_name
-                />
-                <button type="submit">"Greet"</button>
-            </form>
+        <p>
+            <strong>"Reactive: "</strong>
+            {move || count.get()}
+        </p>
+    }
+}
 
-            <p><b>{ move || greet_msg.get() }</b></p>
-        </main>
+#[component]
+pub fn Info(
+    read_signal: ReadSignal<String>,
+    write_signal: WriteSignal<String>,
+    function_name: &'static str,
+    name: &'static str,
+) -> impl IntoView {
+    view! {
+        <div class="button-paragraph-container">
+            // Get Address
+            <button on:click=move |_| {
+                spawn_local(async move {
+                    let address = invoke(function_name).await.as_string().unwrap();
+                    write_signal.update(move |n| *n = address);
+                });
+            }>{format!("Get {}", name)}</button>
+            <p>
+                <strong>{format!("{}: ", name)}</strong>
+                {move || read_signal.get()}
+            </p>
+        </div>
     }
 }
