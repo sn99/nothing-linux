@@ -134,5 +134,5 @@ input:checked + .slider:before {
   color: #a0a0a0;
 }
 .hidden {
-  display: none;
+  visibility: hidden;
 }

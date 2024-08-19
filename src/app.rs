@@ -51,58 +51,131 @@ pub fn App() -> impl IntoView {
     //         {move || count.get()}
     //     </p>
     // }
+
+    let (info, set_info) = create_signal("Unknown".to_string());
+
+    spawn_local(async move {
+        let address = invoke("get_address").await.as_string().unwrap();
+        let serial_number = invoke("get_serial_number").await.as_string().unwrap();
+        let firmware_version = invoke("get_firmware_version").await.as_string().unwrap();
+
+        set_info.set(format!(
+            "Address: {} | Serial Number: {} | Firmware Version: {}",
+            address, serial_number, firmware_version
+        ));
+    });
+
+    let (noise_control, set_noise_control) = create_signal("cancellation".to_string());
+    let (noise_level, set_noise_level) = create_signal("adaptive".to_string());
+
+    let toggle_noise_control = move |mode: &str| {
+        set_noise_control.set(mode.to_string());
+    };
+
+    let toggle_noise_level = move |level: &str| {
+        set_noise_level.set(level.to_string());
+    };
+
     view! {
         <div class="container">
             <div class="row">
                 <div class="column noise-control">
                     <h2>"NOISE CONTROL"</h2>
-                    <div class="toggle-group" id="noiseControl">
-                        <div class="active" data-noise="cancellation">
+                    <div class="toggle-group">
+                        <div
+                            class=move || {
+                                if noise_control.get() == "cancellation" { "active" } else { "" }
+                            }
+                            on:click=move |_| toggle_noise_control("cancellation")
+                        >
                             "Noise Cancellation"
                         </div>
-                        <div data-noise="transparency">"Transparency"</div>
-                        <div data-noise="off">"Off"</div>
+                        <div
+                            class=move || {
+                                if noise_control.get() == "transparency" { "active" } else { "" }
+                            }
+                            on:click=move |_| toggle_noise_control("transparency")
+                        >
+                            "Transparency"
+                        </div>
+                        <div
+                            class=move || if noise_control.get() == "off" { "active" } else { "" }
+                            on:click=move |_| toggle_noise_control("off")
+                        >
+                            "Off"
+                        </div>
                     </div>
-                    <div class="noise-levels" id="noiseLevels">
-                        <div>"High"</div>
-                        <div>"Mid"</div>
-                        <div>"Low"</div>
-                        <div class="active">"Adaptive"</div>
+
+                    <div class=move || {
+                        if noise_control.get() == "cancellation" {
+                            "noise-levels"
+                        } else {
+                            "noise-levels hidden"
+                        }
+                    }>
+                        <div
+                            class=move || if noise_level.get() == "high" { "active" } else { "" }
+                            on:click=move |_| toggle_noise_level("high")
+                        >
+                            "High"
+                        </div>
+                        <div
+                            class=move || if noise_level.get() == "mid" { "active" } else { "" }
+                            on:click=move |_| toggle_noise_level("mid")
+                        >
+                            "Mid"
+                        </div>
+                        <div
+                            class=move || if noise_level.get() == "low" { "active" } else { "" }
+                            on:click=move |_| toggle_noise_level("low")
+                        >
+                            "Low"
+                        </div>
+                        <div
+                            class=move || {
+                                if noise_level.get() == "adaptive" { "active" } else { "" }
+                            }
+                            on:click=move |_| toggle_noise_level("adaptive")
+                        >
+                            "Adaptive"
+                        </div>
                     </div>
                 </div>
+
                 <div class="column">
                     <div class="switch-group">
                         <span class="switch-label">"Personalized ANC"</span>
                         <label class="switch">
-                            <input type="checkbox" id="togglePersonalizedANC" />
+                            <input type="checkbox" />
                             <span class="slider"></span>
                         </label>
                     </div>
                     <div class="switch-group">
                         <span class="switch-label">"Low Lag Mode"</span>
                         <label class="switch">
-                            <input type="checkbox" id="toggleLowLagMode" />
+                            <input type="checkbox" />
                             <span class="slider"></span>
                         </label>
                     </div>
                     <div class="switch-group">
                         <span class="switch-label">"High Quality Audio"</span>
                         <label class="switch">
-                            <input type="checkbox" id="toggleHighQualityAudio" />
+                            <input type="checkbox" />
                             <span class="slider"></span>
                         </label>
                     </div>
                     <div class="switch-group">
                         <span class="switch-label">"In-Ear Detection"</span>
                         <label class="switch">
-                            <input type="checkbox" id="toggleInEarDetection" />
+                            <input type="checkbox" />
                             <span class="slider"></span>
                         </label>
                     </div>
                 </div>
             </div>
+
             <div class="info">
-                <p>"Version: 1.0.0 | Firmware: 2.1.0 | Address: 1234 Street Name, City"</p>
+                <p>{move || info.get()}</p>
             </div>
         </div>
     }
