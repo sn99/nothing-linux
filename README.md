@@ -66,7 +66,7 @@ helpful: [StackOverFlow](https://stackoverflow.com/questions/23877761/sniffing-l
 ### Steps
 
 1. To run locally: `cargo tauri dev`
-2. Tu build deb, rpm and appimage: `NO_STRIP=true cargo tauri build --verbose`
+2. To build deb, rpm and appimage: `NO_STRIP=true cargo tauri build --verbose`
 
 ## Future
 
