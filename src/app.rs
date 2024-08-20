@@ -86,7 +86,12 @@ pub fn App() -> impl IntoView {
                             class=move || {
                                 if noise_control.get() == "cancellation" { "active" } else { "" }
                             }
-                            on:click=move |_| toggle_noise_control("cancellation")
+                            on:click=move |_| {
+                                spawn_local(async move {
+                                    invoke("set_anc_mode_adaptive").await;
+                                    toggle_noise_control("cancellation")
+                                });
+                            }
                         >
                             "Noise Cancellation"
                         </div>
@@ -94,13 +99,23 @@ pub fn App() -> impl IntoView {
                             class=move || {
                                 if noise_control.get() == "transparency" { "active" } else { "" }
                             }
-                            on:click=move |_| toggle_noise_control("transparency")
+                            on:click=move |_| {
+                                spawn_local(async move {
+                                    invoke("set_anc_mode_transparency").await;
+                                    toggle_noise_control("transparency")
+                                });
+                            }
                         >
                             "Transparency"
                         </div>
                         <div
                             class=move || if noise_control.get() == "off" { "active" } else { "" }
-                            on:click=move |_| toggle_noise_control("off")
+                            on:click=move |_| {
+                                spawn_local(async move {
+                                    invoke("set_anc_mode_off").await;
+                                    toggle_noise_control("off")
+                                });
+                            }
                         >
                             "Off"
                         </div>
@@ -115,19 +130,34 @@ pub fn App() -> impl IntoView {
                     }>
                         <div
                             class=move || if noise_level.get() == "high" { "active" } else { "" }
-                            on:click=move |_| toggle_noise_level("high")
+                            on:click=move |_| {
+                                spawn_local(async move {
+                                    invoke("set_anc_mode_high").await;
+                                    toggle_noise_level("high")
+                                });
+                            }
                         >
                             "High"
                         </div>
                         <div
                             class=move || if noise_level.get() == "mid" { "active" } else { "" }
-                            on:click=move |_| toggle_noise_level("mid")
+                            on:click=move |_| {
+                                spawn_local(async move {
+                                    invoke("set_anc_mode_mid").await;
+                                    toggle_noise_level("mid")
+                                });
+                            }
                         >
                             "Mid"
                         </div>
                         <div
                             class=move || if noise_level.get() == "low" { "active" } else { "" }
-                            on:click=move |_| toggle_noise_level("low")
+                            on:click=move |_| {
+                                spawn_local(async move {
+                                    invoke("set_anc_mode_low").await;
+                                    toggle_noise_level("low")
+                                });
+                            }
                         >
                             "Low"
                         </div>
@@ -135,7 +165,12 @@ pub fn App() -> impl IntoView {
                             class=move || {
                                 if noise_level.get() == "adaptive" { "active" } else { "" }
                             }
-                            on:click=move |_| toggle_noise_level("adaptive")
+                            on:click=move |_| {
+                                spawn_local(async move {
+                                    invoke("set_anc_mode_adaptive").await;
+                                    toggle_noise_level("adaptive")
+                                });
+                            }
                         >
                             "Adaptive"
                         </div>

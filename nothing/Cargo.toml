@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 tokio = "1.39.2"
 bluer = { version = "0.17.0", features = ["full"] }
+strum = { version = "0.26.3", features = ["derive"] }
