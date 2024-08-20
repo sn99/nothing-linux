@@ -65,6 +65,20 @@ async fn set_anc_mode_transparency(state: tauri::State<'_, Ear2>) -> Result<(), 
     Ok(())
 }
 
+#[tauri::command]
+async fn set_low_lag_mode_on(state: tauri::State<'_, Ear2>) -> Result<(), ()> {
+    let k = state.set_low_latency_mode(true).await;
+    println!("set_low_lag_mode_on: {:?}", k);
+    Ok(())
+}
+
+#[tauri::command]
+async fn set_low_lag_mode_off(state: tauri::State<'_, Ear2>) -> Result<(), ()> {
+    let k = state.set_low_latency_mode(false).await;
+    println!("set_low_lag_mode_false: {:?}", k);
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() {
     let ear = Ear2::new().await.unwrap();
@@ -81,7 +95,9 @@ pub async fn run() {
             set_anc_mode_mid,
             set_anc_mode_low,
             set_anc_mode_adaptive,
-            set_anc_mode_transparency
+            set_anc_mode_transparency,
+            set_low_lag_mode_on,
+            set_low_lag_mode_off
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

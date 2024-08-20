@@ -1,3 +1,4 @@
+use leptos::logging::log;
 use leptos::*;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::JsValue;
@@ -10,48 +11,6 @@ extern "C" {
 
 #[component]
 pub fn App() -> impl IntoView {
-    let (count, set_count) = create_signal(0);
-    let (address, set_address) = create_signal("Unknown".to_string());
-    let (serial_number, set_serial_number) = create_signal("Unknown".to_string());
-    let (firmware_version, set_firmware_version) = create_signal("Unknown".to_string());
-
-    // view! {
-    //     <div class="button-container">
-    //         <Info
-    //             read_signal=address
-    //             write_signal=set_address
-    //             function_name="get_address"
-    //             name="Address"
-    //         />
-    //         <Info
-    //             read_signal=serial_number
-    //             write_signal=set_serial_number
-    //             function_name="get_serial_number"
-    //             name="Serial Number"
-    //         />
-    //         <Info
-    //             read_signal=firmware_version
-    //             write_signal=set_firmware_version
-    //             function_name="get_firmware_version"
-    //             name="Firmware Version"
-    //         />
-    //     </div>
-    //
-    //     <button
-    //         on:click=move |_| {
-    //             set_count.update(|n| *n += 1);
-    //         }
-    //         class:red=move || count.get() % 2 == 1
-    //     >
-    //         "Click me for +1"
-    //     </button>
-    //
-    //     <p>
-    //         <strong>"Reactive: "</strong>
-    //         {move || count.get()}
-    //     </p>
-    // }
-
     let (info, set_info) = create_signal("Unknown".to_string());
 
     spawn_local(async move {
@@ -74,6 +33,18 @@ pub fn App() -> impl IntoView {
 
     let toggle_noise_level = move |level: &str| {
         set_noise_level.set(level.to_string());
+    };
+
+    let handle_low_lag_mode = move |event| {
+        spawn_local(async move {
+            let is_checked = event_target_checked(&event);
+            log!("Low Lag Mode: {}", is_checked);
+            if is_checked {
+                invoke("set_low_lag_mode_on").await;
+            } else {
+                invoke("set_low_lag_mode_off").await;
+            }
+        });
     };
 
     view! {
@@ -179,23 +150,9 @@ pub fn App() -> impl IntoView {
 
                 <div class="column">
                     <div class="switch-group">
-                        <span class="switch-label">"Personalized ANC"</span>
-                        <label class="switch">
-                            <input type="checkbox" />
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="switch-group">
                         <span class="switch-label">"Low Lag Mode"</span>
                         <label class="switch">
-                            <input type="checkbox" />
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="switch-group">
-                        <span class="switch-label">"High Quality Audio"</span>
-                        <label class="switch">
-                            <input type="checkbox" />
+                            <input type="checkbox" on:change=handle_low_lag_mode />
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -212,30 +169,6 @@ pub fn App() -> impl IntoView {
             <div class="info">
                 <p>{move || info.get()}</p>
             </div>
-        </div>
-    }
-}
-
-#[component]
-pub fn Info(
-    read_signal: ReadSignal<String>,
-    write_signal: WriteSignal<String>,
-    function_name: &'static str,
-    name: &'static str,
-) -> impl IntoView {
-    view! {
-        <div class="button-paragraph-container">
-            // Get Address
-            <button on:click=move |_| {
-                spawn_local(async move {
-                    let address = invoke(function_name).await.as_string().unwrap();
-                    write_signal.update(move |n| *n = address);
-                });
-            }>{format!("Get {}", name)}</button>
-            <p>
-                <strong>{format!("{}: ", name)}</strong>
-                {move || read_signal.get()}
-            </p>
         </div>
     }
 }

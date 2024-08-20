@@ -1,9 +1,9 @@
-use crate::Nothing;
-use bluer::rfcomm::Stream;
-use std::future::Future;
-
 use crate::anc::AncMode;
 use crate::connect::connect;
+use crate::Nothing;
+use bluer::rfcomm::Stream;
+use bluer::Error;
+use std::future::Future;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::Mutex;
 use tokio::time::sleep;
@@ -13,6 +13,14 @@ const EAR2_CHANNEL: u8 = 15;
 const EAR2_FIRMWARE: [u8; 10] = [0x55, 0x60, 0x01, 0x42, 0xc0, 0x00, 0x00, 0x03, 0xe0, 0xd1];
 const EAR2_SERIAL: [u8; 10] = [0x55, 0x60, 0x01, 0x06, 0xc0, 0x00, 0x00, 0x05, 0x90, 0xdc];
 const RETRY: u64 = 3;
+
+const EAR2_LOW_LAG_ON: [u8; 12] = [
+    0x55, 0x60, 0x01, 0x40, 0xf0, 0x02, 0x00, 0x27, 0x01, 0x00, 0x97, 0xf7,
+];
+
+const EAR2_LOW_LAG_OFF: [u8; 12] = [
+    0x55, 0x60, 0x01, 0x40, 0xf0, 0x02, 0x00, 0x28, 0x02, 0x00, 0xa7, 0x04,
+];
 
 const EAR2_ANC: [u8; 13] = [
     0x55, 0x60, 0x01, 0x0f, 0xf0, 0x03, 0x00, 0xcd, 0x01, 0x00, 0x00, 0xc4, 0x47,
@@ -38,6 +46,10 @@ impl Nothing for Ear2 {
 
     fn set_anc_mode(&self, mode: AncMode) -> impl Future<Output = Result<(), bluer::Error>> + Send {
         self.set_anc(mode)
+    }
+
+    fn set_low_latency_mode(&self, mode: bool) -> impl Future<Output = Result<(), Error>> + Send {
+        self.set_low_latency(mode)
     }
 }
 
@@ -93,6 +105,18 @@ impl Ear2 {
 
         let mut stream = self.stream.lock().await;
         stream.write_all(&buf).await?;
+
+        Ok(())
+    }
+
+    pub async fn set_low_latency(&self, mode: bool) -> bluer::Result<()> {
+        let mut stream = self.stream.lock().await;
+
+        if mode {
+            stream.write_all(&EAR2_LOW_LAG_ON).await?;
+        } else {
+            stream.write_all(&EAR2_LOW_LAG_OFF).await?;
+        }
 
         Ok(())
     }

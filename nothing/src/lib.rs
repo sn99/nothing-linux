@@ -13,4 +13,9 @@ pub trait Nothing {
         &self,
         mode: AncMode,
     ) -> impl std::future::Future<Output = Result<(), bluer::Error>> + Send;
+
+    fn set_low_latency_mode(
+        &self,
+        mode: bool,
+    ) -> impl std::future::Future<Output = Result<(), bluer::Error>> + Send;
 }
