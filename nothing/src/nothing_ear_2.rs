@@ -26,6 +26,14 @@ const EAR2_ANC: [u8; 13] = [
     0x55, 0x60, 0x01, 0x0f, 0xf0, 0x03, 0x00, 0xcd, 0x01, 0x00, 0x00, 0xc4, 0x47,
 ];
 
+const EAR2_IN_EAR_DETECTION_ON: [u8; 13] = [
+    0x55, 0x60, 0x01, 0x04, 0xf0, 0x03, 0x00, 0x26, 0x01, 0x01, 0x01, 0x73, 0x10,
+];
+
+const EAR2_IN_EAR_DETECTION_OFF: [u8; 13] = [
+    0x55, 0x60, 0x01, 0x04, 0xf0, 0x03, 0x00, 0x25, 0x01, 0x01, 0x00, 0xb2, 0x94,
+];
+
 pub struct Ear2 {
     pub address: String,
     pub firmware_version: String,
@@ -50,6 +58,13 @@ impl Nothing for Ear2 {
 
     fn set_low_latency_mode(&self, mode: bool) -> impl Future<Output = Result<(), Error>> + Send {
         self.set_low_latency(mode)
+    }
+
+    fn set_in_ear_detection_mode(
+        &self,
+        mode: bool,
+    ) -> impl Future<Output = Result<(), Error>> + Send {
+        self.set_in_ear_detection(mode)
     }
 }
 
@@ -116,6 +131,18 @@ impl Ear2 {
             stream.write_all(&EAR2_LOW_LAG_ON).await?;
         } else {
             stream.write_all(&EAR2_LOW_LAG_OFF).await?;
+        }
+
+        Ok(())
+    }
+
+    pub async fn set_in_ear_detection(&self, mode: bool) -> bluer::Result<()> {
+        let mut stream = self.stream.lock().await;
+
+        if mode {
+            stream.write_all(&EAR2_IN_EAR_DETECTION_ON).await?;
+        } else {
+            stream.write_all(&EAR2_IN_EAR_DETECTION_OFF).await?;
         }
 
         Ok(())

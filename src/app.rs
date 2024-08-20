@@ -47,6 +47,18 @@ pub fn App() -> impl IntoView {
         });
     };
 
+    let handle_in_ear_detection_mode = move |event| {
+        spawn_local(async move {
+            let is_checked = event_target_checked(&event);
+            log!("In-Ear Detection Mode: {}", is_checked);
+            if is_checked {
+                invoke("set_in_ear_detection_on").await;
+            } else {
+                invoke("set_in_ear_detection_off").await;
+            }
+        });
+    };
+
     view! {
         <div class="container">
             <div class="row">
@@ -159,7 +171,7 @@ pub fn App() -> impl IntoView {
                     <div class="switch-group">
                         <span class="switch-label">"In-Ear Detection"</span>
                         <label class="switch">
-                            <input type="checkbox" />
+                            <input type="checkbox" on:change=handle_in_ear_detection_mode />
                             <span class="slider"></span>
                         </label>
                     </div>

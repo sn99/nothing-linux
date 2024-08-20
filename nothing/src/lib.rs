@@ -18,4 +18,9 @@ pub trait Nothing {
         &self,
         mode: bool,
     ) -> impl std::future::Future<Output = Result<(), bluer::Error>> + Send;
+
+    fn set_in_ear_detection_mode(
+        &self,
+        mode: bool,
+    ) -> impl std::future::Future<Output = Result<(), bluer::Error>> + Send;
 }
