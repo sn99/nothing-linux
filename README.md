@@ -18,6 +18,8 @@ So I made this simple app for Ear (2) for linux.
 
 You can find the latest rpm, deb or appimage in the [Releases](https://github.com/sn99/nothing-linux/releases) page.
 
+Note: The app assumes you are connected to the bluetooth device already, not doing so will cause the app to crash.
+
 ## Architecture
 
 It is made using:

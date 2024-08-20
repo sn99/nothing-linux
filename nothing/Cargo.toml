@@ -2,6 +2,7 @@
 name = "nothing"
 version = "0.1.0"
 edition = "2021"
+authors = ["sn99"]
 
 [dependencies]
 tokio = "1.39.2"
