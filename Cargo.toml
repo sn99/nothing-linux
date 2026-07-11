@@ -16,7 +16,7 @@ console_error_panic_hook = "0.1.7"
 log = "0.4.22"
 
 [workspace]
-members = ["nothing", "src-tauri"]
+members = ["nothing", "src-egui", "src-tauri"]
 
 [profile.release]
 lto = true

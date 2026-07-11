@@ -4,6 +4,7 @@ use crate::Nothing;
 use bluer::rfcomm::Stream;
 use bluer::Error;
 use std::future::Future;
+use std::time::Duration;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::Mutex;
 use tokio::time::sleep;
@@ -76,7 +77,7 @@ impl Ear2 {
         stream.write_all(&EAR2_FIRMWARE).await?;
         let mut buf = [0_u8; 8];
         stream.read_exact(&mut buf).await?;
-        let version_str_len: usize = buf[5].try_into().unwrap();
+        let version_str_len: usize = buf[5].into();
         let mut buf = vec![0_u8; version_str_len + 2];
         stream.read_exact(&mut buf).await?;
         let version = String::from_utf8_lossy(&buf[..version_str_len]);
@@ -84,8 +85,33 @@ impl Ear2 {
         // get serial number
         stream.write_all(&EAR2_SERIAL).await?;
         let mut buf = [0_u8; 64 + 64 + 18];
-        stream.read_exact(&mut buf).await?;
-        let serial = String::from_utf8_lossy(&buf[37..53]);
+        let mut read_total = 0;
+        let chunk_size = 1;
+        for chunk in buf.chunks_exact_mut(chunk_size) {
+            tokio::select! {
+                result = stream.read(chunk) => {
+                    if let Err(err) = result {
+                        eprintln!("Error reading serial response: {}", err);
+                        break;
+                    }
+                    read_total += chunk_size;
+                }
+                () = tokio::time::sleep(Duration::from_secs(1)) => {
+                    eprintln!("Timeout when reading serial response.");
+                    eprintln!("Only got {} bytes: {:?}", read_total, &buf[..read_total]);
+                    break;
+                }
+            };
+        }
+        let serial_length = 16;
+
+        const EAR_2_SERIAL_OFFSET: usize = 37;
+        const EAR_2024_SERIAL_OFFSET: usize = 31;
+
+        let mut serial = String::from_utf8_lossy(&buf[EAR_2_SERIAL_OFFSET..EAR_2_SERIAL_OFFSET+serial_length]);
+        if serial.contains(',') {
+            serial = String::from_utf8_lossy(&buf[EAR_2024_SERIAL_OFFSET..EAR_2024_SERIAL_OFFSET+serial_length]);
+        }
 
         Ok(Self {
             address: stream.peer_addr()?.addr.to_string(),

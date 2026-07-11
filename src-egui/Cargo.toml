@@ -1,0 +1,9 @@
+[package]
+name = "nothing-linux-egui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+eframe = "0.29.1"
+nothing = { path = "../nothing" }
+tokio = { version = "1.42.0", features = ["full"] }

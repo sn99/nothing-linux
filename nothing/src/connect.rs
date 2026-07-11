@@ -20,9 +20,9 @@ async fn find_address(
         .find(|&addr| match addr.0 {
             [a, b, c, _, _, _] => a == address[0] && b == address[1] && c == address[2],
         })
-        .ok_or_else(|| {
+        .ok_or(
             "Couldn't find any Ear devices connected. Make sure you're paired with your Ear."
-        })?;
+        )?;
 
     Ok(*ear_address)
 }
@@ -39,5 +39,6 @@ pub async fn connect(address: [u8; 3], channel: u8) -> Result<Stream, Box<dyn st
         channel,
     })
     .await?;
+
     Ok(stream)
 }
